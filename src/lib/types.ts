@@ -51,6 +51,7 @@ export type ProductMeta = {
 	logoScale?: number;
 
 	summary?: string;
+	description?: string;
 
 	/** How to get country options for the product. */
 	countrySource?: "worldbank" | "static" | null;

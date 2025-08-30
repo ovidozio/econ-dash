@@ -1,11 +1,10 @@
 import DatasetClient from "./DatasetClient";
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
+type PageProps = {
+  params: { slug: string };
+};
+
+export default function Page({ params: { slug } }: PageProps) {
   return <DatasetClient slug={slug} />;
 }
 

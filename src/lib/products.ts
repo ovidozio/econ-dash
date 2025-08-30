@@ -11,6 +11,7 @@ export const CATALOG: ProductMeta[] = [
 		imageFit: "contain",
 		logoScale: 0.7, // World Bank ~20% size
 		summary: "Real GDP in constant 2015 USD — long-run output by country.",
+		description: "Gross Domestic Product in constant 2015 US dollars. Measures total output adjusted for inflation, annual frequency by country from the World Bank.",
 		countrySource: "worldbank",
 		defaultCountryCode: "USA",
 		viz: {
@@ -32,6 +33,7 @@ export const CATALOG: ProductMeta[] = [
 		imageFit: "contain",
 		logoScale: 1.0, // FRED stays large
 		summary: "US headline CPI — monthly consumer price index.",
+		//description: "Consumer Price Index for All Urban Consumers (CPI-U). A key measure of inflation in the US, reported monthly by the Bureau of Labor Statistics and distributed via FRED.",
 		countrySource: "static",
 		staticCountries: [{ label: "United States", code: "USA" }],
 		defaultCountryCode: "USA",
@@ -46,6 +48,7 @@ export const CATALOG: ProductMeta[] = [
 		imageFit: "contain",
 		logoScale: 0.7, // BLS a little smaller
 		summary: "US unemployment rate (U-3) — % of the labor force unemployed.",
+		//description: "Official US unemployment rate (U-3), measured monthly as the percent of the civilian labor force that is jobless and actively seeking work. Provided by the Bureau of Labor Statistics.",
 		countrySource: "static",
 		staticCountries: [{ label: "United States", code: "USA" }],
 		defaultCountryCode: "USA",
