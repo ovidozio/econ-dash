@@ -33,30 +33,34 @@ export default function CountryCombobox({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between h-9">
-          {selected ? selected.label : placeholder}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between h-9 bg-card border text-left"
+        >
+          <span className="truncate">{selected ? selected.label : placeholder}</span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-60" />
         </Button>
       </PopoverTrigger>
 
       <PopoverContent
         side="bottom"
         align="start"
-        className="w-[--radix-popover-trigger-width] p-0"
+        sideOffset={6}
+        avoidCollisions={false}                  // <-- force dropdown (no flip)
+        className="z-50 w-[--radix-popover-trigger-width] p-0 bg-popover text-popover-foreground border shadow-md"
       >
         <Command filter={(v, q) => (v.toLowerCase().includes(q.toLowerCase()) ? 1 : 0)}>
-          <CommandInput placeholder="Search country…" className="h-9" />
-          <CommandList className="max-h-80 overflow-auto">
+          <CommandInput placeholder="Type a country…" className="h-9" />
+          <CommandList className="max-h-72 overflow-auto">
             <CommandEmpty>No match.</CommandEmpty>
             <CommandGroup>
               {options.map((o) => (
                 <CommandItem
                   key={o.code}
                   value={o.label}
-                  onSelect={() => {
-                    onChange(o.code);
-                    setOpen(false);
-                  }}
+                  onSelect={() => { onChange(o.code); setOpen(false); }}
                 >
                   <Check className={cn("mr-2 h-4 w-4", o.code === value ? "opacity-100" : "opacity-0")} />
                   {o.label}

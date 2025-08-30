@@ -1,20 +1,22 @@
-/* ---- Tailwind / plugins ---- */
+/* ────────────────────────────────globa
+   Tailwind / plugins
+   ──────────────────────────────── */
 @import "tailwindcss";
 @import "tw-animate-css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ------------------------------------------------------------
-   THEME TOKENS (OKLCH) + BRAND COLORS
-   ------------------------------------------------------------ */
+/* ────────────────────────────────
+   Theme plumbing for @tailwindcss
+   ──────────────────────────────── */
 @custom-variant dark (&:is(.dark *));
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -23,11 +25,13 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
+
   --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -44,17 +48,20 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* Light */
+/* ────────────────────────────────
+   Light theme tokens
+   ──────────────────────────────── */
 :root {
   --radius: 0.625rem;
 
-  /* Base surfaces */
+  /* Surfaces */
   --background: oklch(1 0 0);
   --foreground: oklch(0.147 0.004 49.25);
   --card: oklch(1 0 0);
@@ -62,7 +69,7 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.147 0.004 49.25);
 
-  /* Intent colors */
+  /* Intents */
   --primary: oklch(0.216 0.006 56.043);
   --primary-foreground: oklch(0.985 0.001 106.423);
   --secondary: oklch(0.97 0.001 106.424);
@@ -73,17 +80,22 @@
   --accent-foreground: oklch(0.216 0.006 56.043);
   --destructive: oklch(0.577 0.245 27.325);
 
-  /* UI primitives */
+  /* Primitives */
   --border: oklch(0.923 0.003 48.717);
   --input: oklch(0.923 0.003 48.717);
   --ring: oklch(0.709 0.01 56.259);
 
-  /* Charts (OKLCH) */
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6   0.118 184.704);
-  --chart-3: oklch(0.398 0.07  227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+  /* Brand (numbers only for hsl()) */
+  --brand-500: 221 83% 53%;
+  --brand-600: 221 83% 47%;
+  --brand-700: 221 83% 39%;
+
+  /* Charts follow brand in LIGHT */
+  --chart-1: hsl(var(--brand-600));
+  --chart-2: color-mix(in oklab, hsl(var(--brand-600)) 78%, white);
+  --chart-3: color-mix(in oklab, hsl(var(--brand-600)) 62%, white);
+  --chart-4: color-mix(in oklab, hsl(var(--brand-600)) 46%, white);
+  --chart-5: color-mix(in oklab, hsl(var(--brand-600)) 32%, white);
 
   /* Sidebar */
   --sidebar: oklch(0.985 0.001 106.423);
@@ -94,16 +106,13 @@
   --sidebar-accent-foreground: oklch(0.216 0.006 56.043);
   --sidebar-border: oklch(0.923 0.003 48.717);
   --sidebar-ring: oklch(0.709 0.01 56.259);
-
-  /* BRAND hues (used for CTA, arrows, etc.) */
-  /* Light: blue */
-  --brand-500: 221 83% 53%;
-  --brand-600: 221 83% 47%;
-  --brand-700: 221 83% 39%;
 }
 
-/* Dark */
+/* ────────────────────────────────
+   Dark theme tokens
+   ──────────────────────────────── */
 .dark {
+  /* Surfaces */
   --background: oklch(0.147 0.004 49.25);
   --foreground: oklch(0.985 0.001 106.423);
   --card: oklch(0.216 0.006 56.043);
@@ -111,6 +120,7 @@
   --popover: oklch(0.216 0.006 56.043);
   --popover-foreground: oklch(0.985 0.001 106.423);
 
+  /* Intents */
   --primary: oklch(0.923 0.003 48.717);
   --primary-foreground: oklch(0.216 0.006 56.043);
   --secondary: oklch(0.268 0.007 34.298);
@@ -121,16 +131,24 @@
   --accent-foreground: oklch(0.985 0.001 106.423);
   --destructive: oklch(0.704 0.191 22.216);
 
+  /* Primitives */
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.553 0.013 58.071);
 
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
+  /* Brand (numbers only for hsl()) */
+  --brand-500: 270 83% 60%;
+  --brand-600: 270 83% 52%;
+  --brand-700: 270 83% 45%;
 
+  /* Charts follow brand in DARK */
+  --chart-1: hsl(var(--brand-600));
+  --chart-2: color-mix(in oklab, hsl(var(--brand-600)) 78%, white);
+  --chart-3: color-mix(in oklab, hsl(var(--brand-600)) 62%, white);
+  --chart-4: color-mix(in oklab, hsl(var(--brand-600)) 46%, white);
+  --chart-5: color-mix(in oklab, hsl(var(--brand-600)) 32%, white);
+
+  /* Sidebar */
   --sidebar: oklch(0.216 0.006 56.043);
   --sidebar-foreground: oklch(0.985 0.001 106.423);
   --sidebar-primary: oklch(0.488 0.243 264.376);
@@ -139,26 +157,17 @@
   --sidebar-accent-foreground: oklch(0.985 0.001 106.423);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.553 0.013 58.071);
-
-  /* Dark: purple */
-  --brand-500: 270 83% 60%;
-  --brand-600: 270 83% 52%;
-  --brand-700: 270 83% 45%;
 }
 
-/* ------------------------------------------------------------
-   BASE LAYER + GLOBAL FIXES
-   ------------------------------------------------------------ */
+/* ────────────────────────────────
+   Base layer + global fixes
+   ──────────────────────────────── */
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+  * { @apply border-border outline-ring/50; }
+  body { @apply bg-background text-foreground; }
 }
 
-/* Remove native OS button styling (fixes ugly arrows) */
+/* Remove native OS button styling (fixes ugly aqua/white buttons) */
 button,
 [type="button"],
 [type="submit"],
@@ -169,12 +178,17 @@ button,
   border: 0;
 }
 
-/* ------------------------------------------------------------
-   SWEEP HOVER (for brand buttons / links with .btn-sweep)
-   ------------------------------------------------------------ */
+.chip {
+  @apply inline-flex h-8 items-center rounded-md px-3
+         bg-secondary text-secondary-foreground border;
+}
+
+/* ────────────────────────────────
+   Sweep hover (brand buttons/links)
+   ──────────────────────────────── */
 @keyframes sweep {
   from { transform: translateX(-110%); }
-  to   { transform: translateX(110%); }
+  to   { transform: translateX(110%);  }
 }
 .btn-sweep {
   position: relative;
@@ -192,9 +206,117 @@ button,
     transparent
   );
   transform: translateX(-110%);
-  z-index: -1;
+  z-index: 0; /* sit above bg, below content */
 }
 .btn-sweep:hover::before {
-  animation: sweep 700ms ease-out 1;
+  animation: sweep var(--sweep-ms, 1100ms) ease-out 1;
+}
+/* Ensure content sits above the sweep layer */
+.btn-sweep > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* =========================================================
+   CARD: solid brand border fill (L→R) + interior brand sheen
+   Usage: class="card-sheen-fill"
+   Tunables: --sweep-ms (duration), --ring-w (border thickness), --sheen-alpha (interior sheen)
+   ========================================================= */
+
+/* animate a percentage for reveal width (border fill) */
+@property --reveal {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+.card-sheen-fill {
+  position: relative;
+  isolation: isolate;
+}
+
+/* ---------- INTERIOR SHEEN (solid overlay expands L→R) ---------- */
+.card-sheen-fill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+
+  /* Solid brand overlay (purple in dark, blue in light) */
+  background: hsl(var(--brand-600) / var(--sheen-alpha, .24));
+
+  /* Start invisible & collapsed to the left */
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: opacity 140ms ease-out;
+  will-change: transform, opacity;
+
+  /* Ensure it sits ABOVE content (but below the border ring) */
+  z-index: 2;
+}
+
+.card-sheen-fill:hover::before,
+.card-sheen-fill:focus-visible::before {
+  opacity: 1;
+  animation: sheen-slide var(--sweep-ms, 900ms) ease-out forwards;
+}
+
+/* Expands the solid overlay to fully cover the card */
+@keyframes sheen-slide {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* ---------- SOLID BRAND BORDER that "fills" L→R ---------- */
+.card-sheen-fill::after {
+  content: "";
+  position: absolute;
+  inset: -1px;                    /* paint over the outer stroke */
+  border-radius: inherit;
+  padding: var(--ring-w, 2px);
+  background: hsl(var(--brand-600));   /* solid brand color */
+
+  /* Hollow center: only the ring is visible */
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+
+  pointer-events: none;
+
+  /* Hidden until hover; revealed via left→right clip */
+  opacity: 0;
+  transition: opacity 140ms ease-out;
+  will-change: clip-path, opacity;
+
+  /* Reveal from LEFT using a rectangular clip that grows to 100% */
+  clip-path: inset(0 calc(100% - var(--reveal)) 0 0 round 0);
+
+  /* Border sits ABOVE sheen layer */
+  z-index: 3;
+}
+
+.card-sheen-fill:hover::after,
+.card-sheen-fill:focus-visible::after {
+  opacity: 1;
+  animation: border-fill var(--sweep-ms, 900ms) ease-out forwards;
+}
+
+@keyframes border-fill {
+  from { --reveal: 0%; }
+  to   { --reveal: 100%; } /* ends fully solid on all sides */
+}
+
+/* Reduced motion: disable both effects */
+@media (prefers-reduced-motion: reduce) {
+  .card-sheen-fill::before,
+  .card-sheen-fill::after {
+    transition: none;
+    animation: none !important;
+    opacity: 0;
+  }
 }
 
