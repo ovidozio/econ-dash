@@ -218,105 +218,17 @@ button,
 }
 
 /* =========================================================
-   CARD: solid brand border fill (L→R) + interior brand sheen
-   Usage: class="card-sheen-fill"
-   Tunables: --sweep-ms (duration), --ring-w (border thickness), --sheen-alpha (interior sheen)
+   CARD: hover directional glow (bottom-left light source)
    ========================================================= */
 
-/* animate a percentage for reveal width (border fill) */
-@property --reveal {
-  syntax: "<percentage>";
-  inherits: false;
-  initial-value: 0%;
-}
-
-.card-sheen-fill {
+.card-sweep {
   position: relative;
-  isolation: isolate;
+  transition: box-shadow 220ms ease;
 }
 
-/* ---------- INTERIOR SHEEN (solid overlay expands L→R) ---------- */
-.card-sheen-fill::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-
-  /* Solid brand overlay (purple in dark, blue in light) */
-  background: hsl(var(--brand-600) / var(--sheen-alpha, .24));
-
-  /* Start invisible & collapsed to the left */
-  opacity: 0;
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: opacity 140ms ease-out;
-  will-change: transform, opacity;
-
-  /* Ensure it sits ABOVE content (but below the border ring) */
-  z-index: 2;
-}
-
-.card-sheen-fill:hover::before,
-.card-sheen-fill:focus-visible::before {
-  opacity: 1;
-  animation: sheen-slide var(--sweep-ms, 900ms) ease-out forwards;
-}
-
-/* Expands the solid overlay to fully cover the card */
-@keyframes sheen-slide {
-  from { transform: scaleX(0); }
-  to   { transform: scaleX(1); }
-}
-
-/* ---------- SOLID BRAND BORDER that "fills" L→R ---------- */
-.card-sheen-fill::after {
-  content: "";
-  position: absolute;
-  inset: -1px;                    /* paint over the outer stroke */
-  border-radius: inherit;
-  padding: var(--ring-w, 2px);
-  background: hsl(var(--brand-600));   /* solid brand color */
-
-  /* Hollow center: only the ring is visible */
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-
-  pointer-events: none;
-
-  /* Hidden until hover; revealed via left→right clip */
-  opacity: 0;
-  transition: opacity 140ms ease-out;
-  will-change: clip-path, opacity;
-
-  /* Reveal from LEFT using a rectangular clip that grows to 100% */
-  clip-path: inset(0 calc(100% - var(--reveal)) 0 0 round 0);
-
-  /* Border sits ABOVE sheen layer */
-  z-index: 3;
-}
-
-.card-sheen-fill:hover::after,
-.card-sheen-fill:focus-visible::after {
-  opacity: 1;
-  animation: border-fill var(--sweep-ms, 900ms) ease-out forwards;
-}
-
-@keyframes border-fill {
-  from { --reveal: 0%; }
-  to   { --reveal: 100%; } /* ends fully solid on all sides */
-}
-
-/* Reduced motion: disable both effects */
-@media (prefers-reduced-motion: reduce) {
-  .card-sheen-fill::before,
-  .card-sheen-fill::after {
-    transition: none;
-    animation: none !important;
-    opacity: 0;
-  }
+.group:hover.card-sweep,
+.group:focus-within.card-sweep {
+  /* offset-x  offset-y  blur spread  color */
+  box-shadow: -6px 6px 12px -2px hsl(var(--brand-600) / 0.45);
 }
 
