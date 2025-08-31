@@ -1,33 +1,68 @@
-export type ScaleMode = "auto" | "raw" | "thousand" | "million" | "billion" | "trillion" | "sci";
+export type ScaleMode =
+  | "auto"
+  | "raw"
+  | "thousand"
+  | "million"
+  | "billion"
+  | "trillion"
+  | "sci";
 
-const DIVS: Record<Exclude<ScaleMode,"auto"|"sci">, { div: number; suffix: string }> = {
-	thousand: { div: 1e3,  suffix: "K"  },
-	million:  { div: 1e6,  suffix: "M"  },
-	billion:  { div: 1e9,  suffix: "B"  },
-	trillion: { div: 1e12, suffix: "T"  },
-	raw:      { div: 1,    suffix: ""   },
+export type ScaleInfo = {
+  mode: "raw" | "k" | "m" | "b" | "t" | "sci";
+  div: number;
+  suffix: "" | " K" | " M" | " B" | " T";
 };
 
-export function chooseScale(max: number) {
-	if (!isFinite(max) || max <= 0) return { div: 1, suffix: "", mode: "raw" as ScaleMode };
-	if (max >= 1e12) return { div: 1e12, suffix: "T", mode: "trillion" as ScaleMode };
-	if (max >= 1e9)  return { div: 1e9,  suffix: "B", mode: "billion"  as ScaleMode };
-	if (max >= 1e6)  return { div: 1e6,  suffix: "M", mode: "million"  as ScaleMode };
-	if (max >= 1e3)  return { div: 1e3,  suffix: "K", mode: "thousand" as ScaleMode };
-	return { div: 1, suffix: "", mode: "raw" as ScaleMode };
+/**
+ * Chooses display scaling. Key behavior:
+ * - "sci": scientific (no divisor; formatter shows ×10^n)
+ * - "auto": NEVER applies K/M/B for small magnitudes (maxAbs < 1e3) so tiny values don't get crushed to 0.
+ * - raw/K/M/B/T: fixed divisors.
+ */
+export function getScale(mode: ScaleMode, maxAbs: number): ScaleInfo {
+  if (!Number.isFinite(maxAbs)) maxAbs = 0;
+
+  if (mode === "sci") return { mode: "sci", div: 1, suffix: "" };
+  if (mode === "raw") return { mode: "raw", div: 1, suffix: "" };
+  if (mode === "thousand") return { mode: "k", div: 1e3, suffix: " K" };
+  if (mode === "million") return { mode: "m", div: 1e6, suffix: " M" };
+  if (mode === "billion") return { mode: "b", div: 1e9, suffix: " B" };
+  if (mode === "trillion") return { mode: "t", div: 1e12, suffix: " T" };
+
+  // mode === "auto"
+  const a = Math.abs(maxAbs);
+  // IMPORTANT: don't scale small data — prevents labels like 0 when values are < 1
+  if (a < 1e3) return { mode: "raw", div: 1, suffix: "" };
+  if (a < 1e6) return { mode: "k", div: 1e3, suffix: " K" };
+  if (a < 1e9) return { mode: "m", div: 1e6, suffix: " M" };
+  if (a < 1e12) return { mode: "b", div: 1e9, suffix: " B" };
+  return { mode: "t", div: 1e12, suffix: " T" };
 }
 
-export function getScale(mode: ScaleMode, dataMax: number) {
-	if (mode === "auto") return chooseScale(dataMax);
-	if (mode === "sci")  return { div: 1, suffix: "", mode: "sci" as ScaleMode };
-	return { ...(DIVS[mode]), mode };
+/**
+ * Decimal formatter that shows sensible precision for small numbers.
+ * - Exact 0 → "0"
+ * - 0 < |v| < 1 → at least 2 decimals (or `digits`, whichever is larger)
+ * - otherwise → `digits` decimals
+ */
+export function fmtNumber(v: number, digits: number): string {
+  if (!Number.isFinite(v) || v === 0) return "0";
+  const abs = Math.abs(v);
+  const minFrac = abs < 1 ? Math.min(2, digits) : 0;
+  const maxFrac = abs < 1 ? Math.max(2, digits) : digits;
+  return new Intl.NumberFormat(undefined, {
+    minimumFractionDigits: minFrac,
+    maximumFractionDigits: maxFrac,
+  }).format(v);
 }
 
-export function fmtNumber(n: number, digits = 2) {
-	return Intl.NumberFormat("en-US", { maximumFractionDigits: digits }).format(n);
-}
-
-export function fmtScientific(n: number, digits = 3) {
-	return !isFinite(n) ? "" : n.toExponential(digits);
+/**
+ * Scientific formatter.
+ * - Exact 0 → "0"
+ * - Others → "a.b ×10^n"
+ */
+export function fmtScientific(v: number, digits: number): string {
+  if (!Number.isFinite(v) || v === 0) return "0";
+  return v.toExponential(digits).replace(/e\+?(-?\d+)/i, " ×10^$1");
 }
 
