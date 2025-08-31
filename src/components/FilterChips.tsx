@@ -1,59 +1,38 @@
 "use client";
-
 import { X } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
 export default function FilterChips({
-  sources = [],
-  countries = [],
-  variants = [],
-  onClearAll,
+	sources, countries, onRemoveSource, onRemoveCountry, onClearAll,
 }: {
-  sources?: string[];
-  countries?: string[];
-  variants?: string[];
-  onClearAll: () => void;
+	sources: string[];
+	countries: { code: string; label: string }[];
+	onRemoveSource: (s: string) => void;
+	onRemoveCountry: (c: string) => void;
+	onClearAll: () => void;
 }) {
-  const hasAny =
-    (sources.length > 0) ||
-    (countries.length > 0) ||
-    (variants.length > 0);
+	const hasAny = sources.length > 0 || countries.length > 0;
+	if (!hasAny) return null;
 
-  if (!hasAny) return null;
-
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      {sources.map((s) => (
-        <Badge key={`source-${s}`} variant="outline" className="flex items-center gap-1">
-          {s}
-          <X className="h-3 w-3 cursor-pointer opacity-70 hover:opacity-100" />
-        </Badge>
-      ))}
-
-      {countries.map((c) => (
-        <Badge key={`country-${c}`} variant="outline" className="flex items-center gap-1">
-          {c}
-          <X className="h-3 w-3 cursor-pointer opacity-70 hover:opacity-100" />
-        </Badge>
-      ))}
-
-      {variants.map((v) => (
-        <Badge key={`variant-${v}`} variant="outline" className="flex items-center gap-1">
-          {v}
-          <X className="h-3 w-3 cursor-pointer opacity-70 hover:opacity-100" />
-        </Badge>
-      ))}
-
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-6 px-2 text-xs"
-        onClick={onClearAll}
-      >
-        Clear all
-      </Button>
-    </div>
-  );
+	return (
+		<div className="flex flex-wrap items-center gap-2">
+			{sources.map((s) => (
+				<span key={`src-${s}`} className="chip">
+					{s}
+					<button className="ml-2 opacity-70 hover:opacity-100" onClick={() => onRemoveSource(s)} aria-label={`Remove ${s}`}>
+						<X size={14} />
+					</button>
+				</span>
+			))}
+			{countries.map((c) => (
+				<span key={`cty-${c.code}`} className="chip">
+					{c.label}
+					<button className="ml-2 opacity-70 hover:opacity-100" onClick={() => onRemoveCountry(c.code)} aria-label={`Remove ${c.label}`}>
+						<X size={14} />
+					</button>
+				</span>
+			))}
+			<button onClick={onClearAll} className="chip btn-sweep">Clear all</button>
+		</div>
+	);
 }
 
