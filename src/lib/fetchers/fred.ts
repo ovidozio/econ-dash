@@ -1,55 +1,128 @@
-import type { Series } from "@/lib/types";
+import type { Series, SeriesPoint } from "@/lib/types";
 
-const FRED_BASE = "https://api.stlouisfed.org/fred";
-const KEY = process.env.FRED_API_KEY ?? "";
+/**
+ * Robust FRED fetcher:
+ * - If FRED_API_KEY is set → use official JSON API
+ * - Otherwise → fall back to fredgraph.csv (no key required)
+ *
+ * Always returns Series with points carrying {date, t, v} so charts render.
+ */
+export async function fetchFredSeries(seriesId: string): Promise<Series> {
+  const apiKey = process.env.FRED_API_KEY || process.env.NEXT_PUBLIC_FRED_API_KEY;
 
-async function fred(endpoint: string, params: Record<string, string>) {
-  const usp = new URLSearchParams({ file_type: "json", ...params });
-  if (KEY) usp.set("api_key", KEY);
-  const url = `${FRED_BASE}${endpoint}?${usp.toString()}`;
-  const res = await fetch(url, { next: { revalidate: 3600 } });
-  if (!res.ok) throw new Error(`FRED error ${res.status}`);
-  const j = await res.json();
-  if (j?.error_message) throw new Error(`FRED: ${j.error_message}`);
-  return j;
+  if (apiKey) {
+    // Official API
+    const url =
+      `https://api.stlouisfed.org/fred/series/observations` +
+      `?series_id=${encodeURIComponent(seriesId)}` +
+      `&file_type=json&observation_start=1900-01-01&api_key=${encodeURIComponent(apiKey)}`;
+
+    const resp = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
+    const txt = await resp.text();
+    if (!resp.ok) {
+      throw new Error(`FRED API ${resp.status}: ${txt.slice(0, 300)}`);
+    }
+    let json: any;
+    try {
+      json = JSON.parse(txt);
+    } catch {
+      throw new Error(`FRED API returned non-JSON: ${txt.slice(0, 200)}`);
+    }
+
+    const rows: any[] = json?.observations ?? [];
+    const points: SeriesPoint[] = rows.map((r) => {
+      const date = String(r?.date || "");
+      const valRaw = r?.value;
+      const value = (valRaw === "." || valRaw == null) ? null : Number(valRaw);
+      const t = Date.parse(date);
+      const year = new Date(t).getFullYear();
+      return { year, value, t, v: value, date };
+    });
+
+    return {
+      unit: undefined,
+      series: [{ key: seriesId, points }],
+      source: { name: "FRED", url },
+      frequency: "M",
+    };
+  }
+
+  // Fallback: fredgraph CSV export (no key required)
+  return fetchFredGraphCsv(seriesId);
 }
 
-export async function fetchFredSeries(params: { seriesId: string }): Promise<Series> {
-  const { seriesId } = params;
+async function fetchFredGraphCsv(seriesId: string): Promise<Series> {
+  const url = `https://fred.stlouisfed.org/graph/fredgraph.csv?id=${encodeURIComponent(seriesId)}`;
+  const resp = await fetch(url, { cache: "no-store" });
+  const csv = await resp.text();
+  if (!resp.ok) {
+    throw new Error(`fredgraph.csv ${resp.status}: ${csv.slice(0, 300)}`);
+  }
 
-  // metadata
-  const meta = await fred("/series", { series_id: seriesId });
-  const info = meta?.seriess?.[0];
-  const title = info?.title ?? seriesId;
-  const unit = info?.units ?? undefined;
-  const freqShort = (info?.frequency_short as "A" | "Q" | "M" | "D") ?? undefined;
+  const lines = csv.trim().split(/\r?\n/);
+  // header is "DATE,<SERIESID>"
+  const header = (lines.shift() || "").split(",");
+  const dateCol = header.findIndex((h) => h.toUpperCase() === "DATE");
+  const valCol = header.findIndex((h) => h.toUpperCase() === seriesId.toUpperCase());
 
-  // observations
-  const obs = await fred("/series/observations", {
-    series_id: seriesId,
-    observation_start: "1950-01-01",
-  });
+  if (dateCol < 0 || valCol < 0) {
+    throw new Error(`fredgraph.csv: unexpected header: ${header.join(",")}`);
+  }
 
-  const points = (obs?.observations ?? [])
-    .map((o: any) => ({
-      time: String(o.date).slice(0, 7), // "YYYY-MM" works well with your axis formatter
-      value: o.value === "." ? null : Number(o.value),
-    }))
-    .filter((p: any) => p.time && Number.isFinite(p.value))
-    .sort((a: any, b: any) => a.time.localeCompare(b.time));
+  const points: SeriesPoint[] = [];
+  for (const line of lines) {
+    if (!line) continue;
+    const cols = splitCsvRow(line);
+    const date = cols[dateCol];
+    const valStr = cols[valCol];
+    const value = (valStr === "." || valStr === "" || valStr == null) ? null : Number(valStr);
+    const t = Date.parse(date);
+    const year = new Date(t).getFullYear();
+    points.push({ year, value, t, v: value, date });
+  }
 
   return {
-    id: `fred:${seriesId}`,
-    title,
-    unit,
-    frequency: freqShort,
-    points,
-    source: {
-      name: "FRED, St. Louis Fed",
-      url: `${FRED_BASE}/series/observations?series_id=${encodeURIComponent(seriesId)}`,
-      license: "FRED Terms of Use",
-    },
-    meta: { seriesId },
+    unit: undefined,
+    series: [{ key: seriesId, points }],
+    source: { name: "FRED", url },
+    frequency: inferFrequency(points),
   };
+}
+
+// --- helpers ----------------------------------------------------------------
+
+function splitCsvRow(line: string): string[] {
+  // Minimal CSV splitter (fredgraph is simple: no embedded newlines)
+  const out: string[] = [];
+  let cur = "";
+  let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQ) {
+      if (ch === '"' && line[i + 1] === '"') {
+        cur += '"'; i++;
+      } else if (ch === '"') {
+        inQ = false;
+      } else cur += ch;
+    } else {
+      if (ch === ',') { out.push(cur); cur = ""; }
+      else if (ch === '"') { inQ = true; }
+      else cur += ch;
+    }
+  }
+  out.push(cur);
+  return out;
+}
+
+function inferFrequency(points: SeriesPoint[] | null | undefined): "M" | "A" | string {
+  if (!points?.length) return "";
+  // If most dates include a month (YYYY-MM), assume monthly.
+  let monthly = 0, total = 0;
+  for (const p of points) {
+    const d = p?.date ?? "";
+    if (/\d{4}-\d{2}/.test(d)) monthly++;
+    total++;
+  }
+  return monthly / Math.max(total, 1) > 0.6 ? "M" : "A";
 }
 

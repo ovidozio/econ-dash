@@ -1,107 +1,67 @@
-import type { CountryOption, Series } from "@/lib/types";
+import type { CountryOption, Series, SeriesPoint } from "@/lib/types";
 
-const WB_BASE = "https://api.worldbank.org/v2";
+/** Fetch World Bank country list (excludes aggregates). */
+export async function fetchWorldBankCountries(): Promise<CountryOption[]> {
+  const url = "https://api.worldbank.org/v2/country?format=json&per_page=400";
+  const resp = await fetch(url, { headers: { Accept: "application/json" }, cache: "no-store" });
+  const text = await resp.text();
+  if (!resp.ok) throw new Error(`World Bank countries failed (${resp.status}): ${text.slice(0, 300)}`);
 
-function wbUrl(
-  path: string,
-  params: Record<string, string | number> = {}
-): string {
-  const usp = new URLSearchParams({
-    format: "json",
-    per_page: "20000",
-    ...Object.fromEntries(
-      Object.entries(params).map(([k, v]) => [k, String(v)])
-    ),
-  });
-  return `${WB_BASE}${path}?${usp.toString()}`;
+  let json: any;
+  try { json = JSON.parse(text); } catch { throw new Error(`World Bank countries not JSON. First 200: ${text.slice(0,200)}`); }
+
+  const rows: any[] = Array.isArray(json) ? json[1] ?? [] : [];
+  return rows
+    .filter((r) => r?.region?.id && r.region.id !== "NA")
+    .map((r) => ({ code: String(r?.id || "").toUpperCase(), label: String(r?.name || "").trim() }))
+    .filter((c) => c.code && c.label)
+    .sort((a, b) => a.label.localeCompare(b.label));
 }
 
-export async function fetchWorldBankSeries(params: {
-  indicator: string;
-  country: string;
-}): Promise<Series> {
-  const { indicator, country } = params;
-  const url = wbUrl(
-    `/country/${encodeURIComponent(country)}/indicator/${encodeURIComponent(
-      indicator
-    )}`
-  );
+/** ONE indicator for ONE country -> Series (includes t/v/date for SeriesChart). */
+export async function fetchWorldBankSeries(dataset: string, country: string): Promise<Series> {
+  const url = `https://api.worldbank.org/v2/country/${encodeURIComponent(country)}/indicator/${encodeURIComponent(dataset)}?format=json&per_page=20000`;
+  const resp = await fetch(url, { headers: { Accept: "application/json" }, cache: "no-store" });
+  const text = await resp.text();
+  if (!resp.ok) throw new Error(`World Bank series failed (${resp.status}): ${text.slice(0, 300)}`);
 
-  const res = await fetch(url, { next: { revalidate: 3600 } });
-  if (!res.ok) {
-    if (res.status === 404) {
-      throw new Error(
-        `World Bank: indicator "${indicator}" not found (HTTP 404).`
-      );
-    }
-    throw new Error(`World Bank error ${res.status}`);
+  let json: any;
+  try { json = JSON.parse(text); } catch { throw new Error(`World Bank series not JSON. First 200: ${text.slice(0,200)}`); }
+
+  const rows: any[] = Array.isArray(json) ? json[1] ?? [] : [];
+  const points: SeriesPoint[] = [];
+
+  for (const r of rows) {
+    const year = Number(r?.date);
+    if (!Number.isFinite(year)) continue;
+    const raw = r?.value;
+    const value = raw === null || raw === undefined ? null : Number(raw);
+    const iso = new Date(year, 0, 1).toISOString();
+    points.push({ year, value, t: year, v: value, date: iso });
   }
 
-  const json = await res.json();
-  if (Array.isArray(json) && json[0]?.message) {
-    const msg = json[0].message?.[0]?.value ?? "Unknown World Bank error";
-    throw new Error(
-      `World Bank: ${msg} (indicator="${indicator}", country="${country}")`
-    );
-  }
-  if (!Array.isArray(json) || json.length < 2 || !Array.isArray(json[1])) {
-    throw new Error("Unexpected World Bank response");
-  }
-
-  const rows = json[1] as any[];
-  const points = rows
-    .map((r) => ({
-      time: String(r.date),
-      value: r.value == null ? null : Number(r.value),
-    }))
-    .filter((p) => p.time)
-    .sort((a, b) => a.time.localeCompare(b.time));
-
-  const title = rows?.[0]?.indicator?.value || indicator;
-  const unit = rows?.[0]?.unit || undefined;
+  points.sort((a, b) => a.year - b.year); // WB returns newest-first
 
   return {
-    id: `worldbank:${indicator}:${country}`,
-    title,
-    unit,
+    unit: undefined,                       // product config usually sets unitLabel
+    series: [{ key: dataset, points }],
+    source: { name: "World Bank", url },
     frequency: "A",
-    points,
-    source: {
-      name: "World Bank",
-      url: wbUrl(
-        `/country/${encodeURIComponent(country)}/indicator/${encodeURIComponent(
-          indicator
-        )}`,
-        { per_page: 50 }
-      ),
-      license: "World Bank Terms of Use",
-    },
-    meta: { indicator, country },
   };
 }
 
-export async function fetchWorldBankCountries(): Promise<CountryOption[]> {
-  const url = wbUrl(`/country`, { per_page: 400 });
-
-  const res = await fetch(url, { next: { revalidate: 86400 } });
-  if (!res.ok) throw new Error(`World Bank error ${res.status}`);
-
-  const json = await res.json();
-  if (Array.isArray(json) && json[0]?.message) {
-    const msg = json[0].message?.[0]?.value ?? "Unknown World Bank error";
-    throw new Error(`World Bank: ${msg}`);
-  }
-  if (!Array.isArray(json) || json.length < 2 || !Array.isArray(json[1])) {
-    throw new Error("Unexpected World Bank country response");
-  }
-
-  const rows = json[1] as any[];
-  const out: CountryOption[] = rows
-    .filter((r) => r?.region?.id !== "NA") // drops aggregates
-    .map((r) => ({ code: String(r.id).toUpperCase(), label: String(r.name) }))
-    .filter((c) => c.code.length === 3);
-
-  out.sort((a, b) => a.label.localeCompare(b.label));
+/** Multi-indicator convenience (parallel) -> { indicatorId: points[] } */
+export async function fetchWorldBankIndicators(
+  indicators: string[],
+  country: string
+): Promise<Record<string, SeriesPoint[]>> {
+  const out: Record<string, SeriesPoint[]> = {};
+  await Promise.all(
+    (indicators || []).map(async (id) => {
+      const s = await fetchWorldBankSeries(id, country);
+      out[id] = s.series[0]?.points ?? [];
+    })
+  );
   return out;
 }
 

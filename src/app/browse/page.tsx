@@ -5,9 +5,9 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
-import BrowseToolbar from "@/components/BrowseToolbar";
-import ProductFilters, { type FilterState, type CountryOption } from "@/components/ProductFilters";
-import ProductGrid from "@/components/ProductGrid";
+import BrowseToolbar from "@/components/layout/BrowseToolbar";
+import ProductFilters, { type FilterState, type CountryOption } from "@/components/products/ProductFilters";
+import ProductGrid from "@/components/products/ProductGrid";
 import { Button } from "@/components/ui/button";
 import { CATALOG } from "@/lib/products";
 

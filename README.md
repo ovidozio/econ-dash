@@ -3,89 +3,107 @@
 A “shopping-style” interface for exploring economic data.
 Datasets are displayed like products with preview cards, filters, and detail pages.
 Clicking a card opens a product page with a chart, clear axis descriptions, and source attribution.
-Options (like sizes on a store) map to things like country, frequency, and units.
+Options (like sizes in a store) map to things like country, units, and variants.
+
+---
+
+## Features
+
+* **Product catalog** with cards, tags, and quick filtering
+* **Product pages** with charts, axis explanations, methodology notes, and source links
+* **Theme-aware chart style**
+  * **Light mode:** crisp line with a subtle solid fill (paper-style)
+  * **Dark mode:** clean line with a soft, downward fade “glow”
+* **Multi-line “Industries” view:** select multiple sectors and compare % of GDP over time
+* **Units system per product:** currency prefixes ($, K/M/B/T, scientific), percents (%), indexes
+* **Country picker** powered by source-aware country lists
+* **URL-synced state** and fast client caching (TanStack Query)
+
+---
 
 ## Project Goals
 
-- Present datasets as **product cards** with title, source tag, and a small preview (sparkline).
-- Provide **product pages** with charts, axis explanations, methodology notes, and licensing.
-- Support **options/variants** (e.g., Country, Frequency, Units, Seasonal Adjustment).
-- Build **modular fetchers** per provider that normalize to a common time-series shape.
-- Enable **fast prototyping**: wire a fetcher → card → detail page and verify the UI quickly.
-- Keep the stack **simple now**, with room to add a typed or high-performance backend later.
+* Present datasets as **product cards** with title, source tag, and a small preview (sparkline).
+* Provide **product pages** with charts, axis explanations, methodology notes, and licensing.
+* Support **options/variants** (e.g., Country, Units, Measure).
+* Build **modular fetchers** per provider that normalize to a common time-series shape.
+* Enable **fast prototyping**: wire a fetcher → card → detail page quickly.
+* Keep the stack **simple now**, with room to add a typed or high-performance backend later.
 
-## Current Planned Datasets
+---
 
-- **World Bank — GDP (constant 2015 US$)**
+## Core Datasets (Implemented)
+
+* **World Bank — GDP (constant 2015 US$)**
   Real GDP by country, annual.
-
-- **FRED — CPI-U (All Urban Consumers)**
-  US consumer price index, monthly.
-
-- **BLS — Unemployment Rate (U-3)**
+* **FRED — CPI-U (All Urban Consumers)**
+  U.S. consumer price index, monthly.
+* **BLS — Unemployment Rate (U-3)**
   Headline unemployment percentage, monthly.
+* **Industries (multi-line)**
+  Sectoral breakdowns (% of GDP) with multi-select.
 
-- **Eurostat — HICP**
-  Harmonised Index of Consumer Prices, EU countries, monthly.
+## Additional Planned Datasets
 
-- **ILOSTAT — Employment / Unemployment**
-  Labour indicators by country, mixed frequencies.
+* **Eurostat — HICP** (EU harmonised consumer prices, monthly)
+* **GFCF (Gross Fixed Capital Formation)**
+* **Inequality distributions** (LLCD transforms on income/firm size)
+* **Interest rates & investment breakdowns**
+* **UN Comtrade (trade flows), ILOSTAT (labor), UNESCO (education), UNDESA (population), OWID (curated)**
 
-- **UN Comtrade — Trade Flows**
-  Imports/exports by reporter, partner, and commodity (HS), monthly/annual.
-
-- **UNESCO — Education Indicators**
-  Enrollment, literacy, expenditure, annual.
-
-- **UNDESA — Population**
-  Population totals and demographics, annual.
-
-- **Our World in Data — Curated Indicators**
-  Selected macro/energy/health series, mixed frequencies.
+---
 
 ## Technologies In Use (Right Now)
 
 **Frontend**
-- **Next.js (React + TypeScript, App Router)**
-  Pages for catalog (`/browse`) and dataset detail (`/datasets/[slug]`).
-- **Tailwind CSS**
-  Utility-first styling for a fast “storefront” layout.
-- **(Optional) shadcn/ui**
-  Prebuilt, unstyled components for ecommerce-like cards, filters, drawers, and dialogs.
-- **Recharts**
-  Declarative charts for previews and detail pages.
-- **TanStack Query (React Query)**
-  Client-side data fetching, caching, and request state management.
+* **Next.js** (React + TypeScript, **App Router**)
+* **Tailwind CSS**, **shadcn/ui**, **lucide-react**
+* **Recharts** for charts
+* **TanStack Query** for fetching/caching
 
 **Backend (Phase 1)**
-- **Next.js Route Handlers (`/api/*`)**
-  Simple proxy and normalization layer in the same app.
-  No separate server needed during prototyping.
+* **Next.js Route Handlers** (`/api/*`) as a simple proxy/normalization layer
 
-**Testing (initial)**
-- **Vitest + React Testing Library (planned)**
-  Unit tests for fetchers and components, plus basic API tests.
+**Data Fetchers** (`src/lib/fetchers/`)
+* Implemented: `worldbank.ts`, `fred.ts`, `bls.ts`
+* Planned: `eurostat.ts`, `comtrade.ts`, `ilostat.ts`, `owid.ts`, `undesa.ts`, `unesco.ts`
 
-**Data Fetchers (to be implemented in `src/lib/fetchers/`)**
-- `bls.ts`, `comtrade.ts`, `eurostat.ts`, `fred.ts`,
-  `ilostat.ts`, `owid.ts`, `undesa.ts`, `unesco.ts`, `worldbank.ts`.
+**Data Shape (normalized)**
+* Common **Series** shape used by charts; providers are normalized to a consistent time-series format so the UI stays agnostic.
 
-**Data Shapes (normalized)**
-- Common **Series** type: `{ id, title, unit, frequency, points: [{ time, value }], source }`.
-- Ensures charts and UI can remain provider-agnostic.
+---
 
-## Near-Term Tasks
+## Screenshots
 
-- Implement `worldbank.ts` as the first fetcher.
-- Add `/api/series` route that dispatches to a provider fetcher.
-- Build `ProductCard` and `SeriesChart` components.
-- Render a minimal catalog at `/browse` with mock data, then live data.
-- Write unit tests for the first fetcher and API route.
+### Dark theme
+![Home A (dark)](docs/dark/01-home-hero-a.png)
+![Home B (dark)](docs/dark/02-home-hero-b.png)
+![Browse (dark)](docs/dark/03-browse-grid.png)
+![GDP (dark)](docs/dark/04-dataset-gdp.png)
+![CPI (dark)](docs/dark/05-dataset-cpi.png)
+![Industries (dark)](docs/dark/06-industries-multiline.png)
 
-## Future (Optional) Backend
+### Light theme
+![Home A (light)](docs/light/01-home-hero-a.png)
+![Home B (light)](docs/light/02-home-hero-b.png)
+![Browse (light)](docs/light/03-browse-grid.png)
+![GDP (light)](docs/light/04-dataset-gdp.png)
+![CPI (light)](docs/light/05-dataset-cpi.png)
+![Industries (light)](docs/light/06-industries-multiline.png)
 
-- **OCaml (Dream/Opium)** for strong typing and robust transforms, or
-- **C++ (Drogon)** for maximum performance, or
-- **Optimized Python (FastAPI + Polars)** for rapid data plumbing.
-- Add a DB (SQLite/Postgres) for caching, product registry, and saved views.
+---
+
+## Run Locally
+
+Prerequisites: Node 18+
+
+1. **Install**
+   `npm i`
+
+2. **Configure API keys (required for local runs)**
+   * FRED: https://fred.stlouisfed.org/docs/api/api_key.html
+   * BLS:  https://www.bls.gov/developers/
+   ```bash
+   export FRED_API_KEY=your_key_here
+   export BLS_API_KEY=your_key_here
 

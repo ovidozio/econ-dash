@@ -1,4 +1,4 @@
-import HeroCarousel, { type Slide } from "@/components/HeroCarousel";
+import HeroCarousel, { type Slide } from "@/components/layout/HeroCarousel";
 
 const slides: Slide[] = [
   {

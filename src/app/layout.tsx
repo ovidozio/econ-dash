@@ -1,6 +1,6 @@
 import "./globals.css";
 import Providers from "./providers";
-import ThemeToggle from "@/components/ThemeToggle";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 
 export const metadata = { title: "Econ Shop", description: "Data as products" };
 

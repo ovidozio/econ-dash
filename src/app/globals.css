@@ -159,6 +159,37 @@
   --sidebar-ring: oklch(0.553 0.013 58.071);
 }
 
+/* ==== Chart Series Palette ================================================ */
+/* Use these for multi-series lines (1..8). Keep names stable for reuse.      */
+:root {
+  /* Light theme: primary = blue */
+  --series-1: hsl(221 83% 53%);  /* blue-600 */
+  --series-2: hsl(142 72% 29%);  /* green-600 */
+  --series-3: hsl(0   72% 51%);  /* red-500   */
+  --series-4: hsl(188 94% 43%);  /* cyan-500  */
+  --series-5: hsl(38  92% 50%);  /* amber-500 */
+  --series-6: hsl(259 94% 61%);  /* violet-500*/
+  --series-7: hsl(160 84% 39%);  /* emerald-500 */
+  --series-8: hsl(25  95% 53%);  /* orange-500 */
+
+  /* Back-compat for existing single-series defaults */
+  --chart-1: var(--series-1);
+}
+
+.dark {
+  /* Dark theme: primary = purple */
+  --series-1: hsl(262 83% 67%);  /* purple-500/400 mix */
+  --series-2: hsl(142 72% 45%);  /* green-500/400      */
+  --series-3: hsl(0   84% 60%);  /* red-500            */
+  --series-4: hsl(188 94% 60%);  /* cyan-400           */
+  --series-5: hsl(38  92% 60%);  /* amber-400          */
+  --series-6: hsl(259 94% 70%);  /* violet-400         */
+  --series-7: hsl(160 84% 55%);  /* emerald-400        */
+  --series-8: hsl(25  95% 62%);  /* orange-400         */
+
+  --chart-1: var(--series-1);
+}
+
 /* ────────────────────────────────
    Base layer + global fixes
    ──────────────────────────────── */
