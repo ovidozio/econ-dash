@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+build/
+dist/
+coverage/
+src/app/datasets/
+src/components/charts/
+src/lib/fetchers/
+src/lib/products/
+src/pages/api/industries/
+

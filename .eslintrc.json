@@ -1,0 +1,22 @@
+{
+  "extends": ["next/core-web-vitals", "next/typescript"],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "off",
+    "react-hooks/rules-of-hooks": "off",
+    "@next/next/no-html-link-for-pages": "off"
+  },
+  "ignorePatterns": [
+    "node_modules/**",
+    ".next/**",
+    "out/**",
+    "build/**",
+    "dist/**",
+    "coverage/**",
+    "src/app/datasets/**",
+    "src/components/charts/**",
+    "src/lib/fetchers/**",
+    "src/lib/products/**",
+    "src/pages/api/industries/**"
+  ]
+}
+

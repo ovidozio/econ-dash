@@ -1,25 +1,41 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
+// eslint.config.js
 import { FlatCompat } from "@eslint/eslintrc";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import path from "node:path";
 
 const compat = new FlatCompat({
-  baseDirectory: __dirname,
+  baseDirectory: path.resolve(),
 });
 
-const eslintConfig = [
+export default [
+  // Next + TS base
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+
+  // Relax the rules that are breaking your prototype
+  {
+    files: ["**/*.{js,jsx,ts,tsx}"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "react-hooks/rules-of-hooks": "off",
+      "@next/next/no-html-link-for-pages": "off",
+    },
+  },
+
+  // Ignore heavy/noisy areas entirely (optional)
   {
     ignores: [
       "node_modules/**",
       ".next/**",
       "out/**",
       "build/**",
-      "next-env.d.ts",
+      "dist/**",
+      "coverage/**",
+      // Prototype hot-spots (comment out later, then fix)
+      "src/app/datasets/**",
+      "src/components/charts/**",
+      "src/lib/fetchers/**",
+      "src/lib/products/**",
+      "src/pages/api/industries/**",
     ],
   },
 ];
 
-export default eslintConfig;

@@ -1,23 +1,41 @@
 # Econ Dashboard
 
 A “shopping-style” interface for exploring economic data.
-Datasets are displayed like products with preview cards, filters, and detail pages.
-Clicking a card opens a product page with a chart, clear axis descriptions, and source attribution.
-Options (like sizes in a store) map to things like country, units, and variants.
+Datasets are displayed like products with preview cards, filters, and detail
+pages. Clicking a card opens a product page with a chart, clear axis
+descriptions, and source attribution. Options (like sizes in a store) map to
+things like country, units, and variants.
 
 **Live site:** https://YOUR-SITE-URL.vercel.app  <!-- replace with your Vercel URL after deploy -->
+
+---
+
+> [!WARNING]
+> **AI-assisted prototype**
+>
+> I acted as the senior product manager / technical lead on this project:
+> I defined the vision, designed the features and information architecture,
+> and set the code-organization principles. I did **not** review or verify
+> every line of AI-generated code. Expect rough edges, incomplete typing,
+> and inconsistencies. I aimed to drag this prototype across the
+> finish line quickly, so production builds may prioritize shipping over
+> strict checks. See **Build Policy** below.
+
 
 ---
 
 ## Features
 
 * **Product catalog** with cards, tags, and quick filtering
-* **Product pages** with charts, axis explanations, methodology notes, and source links
+* **Product pages** with charts, axis explanations, methodology notes, and
+  source links
 * **Theme-aware chart style**
   * **Light mode:** crisp line with a subtle solid fill (paper-style)
   * **Dark mode:** clean line with a soft, downward fade “glow”
-* **Multi-line “Industries” view:** select multiple sectors and compare % of GDP over time
-* **Units system per product:** currency prefixes ($, K/M/B/T, scientific), percents (%), indexes
+* **Multi-line “Industries” view:** select multiple sectors and compare % of
+  GDP over time
+* **Units system per product:** currency prefixes ($, K/M/B/T, scientific),
+  percents (%), indexes
 * **Country picker** powered by source-aware country lists
 * **URL-synced state** and fast client caching (TanStack Query)
 
@@ -25,12 +43,16 @@ Options (like sizes in a store) map to things like country, units, and variants.
 
 ## Project Goals
 
-* Present datasets as **product cards** with title, source tag, and a small preview (sparkline).
-* Provide **product pages** with charts, axis explanations, methodology notes, and licensing.
+* Present datasets as **product cards** with title, source tag, and a small
+  preview (sparkline).
+* Provide **product pages** with charts, axis explanations, methodology notes,
+  and licensing.
 * Support **options/variants** (e.g., Country, Units, Measure).
-* Build **modular fetchers** per provider that normalize to a common time-series shape.
+* Build **modular fetchers** per provider that normalize to a common
+  time-series shape.
 * Enable **fast prototyping**: wire a fetcher → card → detail page quickly.
-* Keep the stack **simple now**, with room to add a typed or high-performance backend later.
+* Keep the stack **simple now**, with room to add a typed or
+  high-performance backend later.
 
 ---
 
@@ -51,7 +73,8 @@ Options (like sizes in a store) map to things like country, units, and variants.
 * **GFCF (Gross Fixed Capital Formation)**
 * **Inequality distributions** (LLCD transforms on income/firm size)
 * **Interest rates & investment breakdowns**
-* **UN Comtrade (trade flows), ILOSTAT (labor), UNESCO (education), UNDESA (population), OWID (curated)**
+* **UN Comtrade (trade flows), ILOSTAT (labor), UNESCO (education), UNDESA
+  (population), OWID (curated)**
 
 ---
 
@@ -68,10 +91,12 @@ Options (like sizes in a store) map to things like country, units, and variants.
 
 **Data Fetchers** (`src/lib/fetchers/`)
 * Implemented: `worldbank.ts`, `fred.ts`, `bls.ts`
-* Planned: `eurostat.ts`, `comtrade.ts`, `ilostat.ts`, `owid.ts`, `undesa.ts`, `unesco.ts`
+* Planned: `eurostat.ts`, `comtrade.ts`, `ilostat.ts`, `owid.ts`, `undesa.ts`,
+  `unesco.ts`
 
 **Data Shape (normalized)**
-* Common **Series** shape used by charts; providers are normalized to a consistent time-series format so the UI stays agnostic.
+* Common **Series** shape used by charts; providers are normalized to a
+  consistent time-series format so the UI stays agnostic.
 
 ---
 
@@ -95,17 +120,21 @@ Options (like sizes in a store) map to things like country, units, and variants.
 
 ---
 
-## Run Locally
+## Build Policy
 
-Prerequisites: Node 18+
+This repo is an AI-assisted prototype. Production builds may **skip ESLint and
+TypeScript checks** to avoid blocking deploys while iterating quickly.
 
-1. **Install**
-   `npm i`
+If you choose to enable this behavior, set in `next.config.ts`:
 
-2. **Configure API keys (required for local runs)**
-   * FRED: https://fred.stlouisfed.org/docs/api/api_key.html
-   * BLS:  https://www.bls.gov/developers/
-   ```bash
-   export FRED_API_KEY=your_key_here
-   export BLS_API_KEY=your_key_here
+```ts
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  eslint: { ignoreDuringBuilds: true },
+  typescript: { ignoreBuildErrors: true }
+};
+
+export default nextConfig;
+```
 
