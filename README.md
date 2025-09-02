@@ -5,6 +5,8 @@ Datasets are displayed like products with preview cards, filters, and detail pag
 Clicking a card opens a product page with a chart, clear axis descriptions, and source attribution.
 Options (like sizes in a store) map to things like country, units, and variants.
 
+**Live site:** https://YOUR-SITE-URL.vercel.app  <!-- replace with your Vercel URL after deploy -->
+
 ---
 
 ## Features
